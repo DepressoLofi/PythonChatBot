@@ -1,0 +1,39 @@
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id: int = update.message.chat.id
+    message_type: str = update.message.chat.type
+    text: str = update.message.text
+
+    if message_type == 'group':
+        if BOT_USERNAME in text:
+            new_text: str = text.replace(BOT_USERNAME, '').strip()
+            response: str = handle_response(new_text)
+        else:
+            return
+        
+    else:
+        if user_id in user_states:
+            if user_states[user_id]['waiting_for_response']:
+                new_answer = text.strip()
+                if new_answer.lower() != 'skip':
+                    boyfriendbot.learn_new_response(user_states[user_id]['unanswered_question'], new_answer)
+                    response = 'Thank you! I learned a new response!'
+                else:
+                    response = 'Okay, no worries!'
+                user_states[user_id]['waiting_for_response'] = False
+            else:
+                best_response: str | None = boyfriendbot.get_message(text)
+                if best_response:
+                    response: str = best_response
+                else:
+                    response: str = "I don't know the answer. Can you teach me? Type your response or 'skip' to skip."
+                    user_states[user_id] = {'waiting_for_response': True, 'unanswered_question': text}
+        else:
+            best_response = boyfriendbot.get_message(text)
+            if best_response:
+                response = best_response
+            else:
+                response = "I don't know the answer. Can you teach me? Type your response or 'skip' to skip."
+                user_states[user_id] = {'waiting_for_response': True, 'unanswered_question': text}
+
+
+        await update.message.reply_text(response)
