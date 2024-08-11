@@ -5,6 +5,8 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import boyfriendbot
 
+#python 3.12
+
 load_dotenv()
 
 TOKEN: Final = os.getenv('TOKEN')
